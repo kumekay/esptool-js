@@ -19,9 +19,10 @@ const alertDiv = document.getElementById('alertDiv');
 //import { Transport } from './cp210x-webusb.js'
 import { Transport } from './webserial.js'
 import { ESPLoader } from './ESPLoader.js'
+import { serial } from './serial.js'
 import { ESPError } from './error.js'
 
-let term = new Terminal({cols:120, rows:40});
+let term = new Terminal({ cols: 120, rows: 40 });
 term.open(terminal);
 
 let device = null;
@@ -39,19 +40,19 @@ filesDiv.style.display = "none";
 
 
 function convertUint8ArrayToBinaryString(u8Array) {
-	var i, len = u8Array.length, b_str = "";
-	for (i=0; i<len; i++) {
-		b_str += String.fromCharCode(u8Array[i]);
-	}
-	return b_str;
+    var i, len = u8Array.length, b_str = "";
+    for (i = 0; i < len; i++) {
+        b_str += String.fromCharCode(u8Array[i]);
+    }
+    return b_str;
 }
 
 function convertBinaryStringToUint8Array(bStr) {
-	var i, len = bStr.length, u8_array = new Uint8Array(len);
-	for (var i = 0; i < len; i++) {
-		u8_array[i] = bStr.charCodeAt(i);
-	}
-	return u8_array;
+    var i, len = bStr.length, u8_array = new Uint8Array(len);
+    for (var i = 0; i < len; i++) {
+        u8_array[i] = bStr.charCodeAt(i);
+    }
+    return u8_array;
 }
 
 function handleFileSelect(evt) {
@@ -61,8 +62,8 @@ function handleFileSelect(evt) {
 
     var reader = new FileReader();
 
-    reader.onload = (function(theFile) {
-        return function(e) {
+    reader.onload = (function (theFile) {
+        return function (e) {
             file1 = e.target.result;
             evt.target.data = file1;
         };
@@ -76,13 +77,13 @@ function _sleep(ms) {
 }
 
 connectButton.onclick = async () => {
-//    device = await navigator.usb.requestDevice({
-//        filters: [{ vendorId: 0x10c4 }]
-//    });
+    //    device = await navigator.usb.requestDevice({
+    //        filters: [{ vendorId: 0x10c4 }]
+    //    });
 
     if (device === null) {
-        device = await navigator.serial.requestPort({
-        });
+        device = await serial.requestPort({});
+        // device = await navigator.serial.requestPort({});
         transport = new Transport(device);
     }
 
@@ -94,7 +95,7 @@ connectButton.onclick = async () => {
 
         // Temporarily broken
         // await esploader.flash_id();
-    } catch(e) {
+    } catch (e) {
         console.error(e);
         term.writeln(`Error: ${e.message}`);
     }
@@ -125,7 +126,7 @@ resetButton.onclick = async () => {
 
 eraseButton.onclick = async () => {
     eraseButton.disabled = true;
-    try{
+    try {
         await esploader.erase_flash();
     } catch (e) {
         console.error(e);
@@ -138,7 +139,7 @@ eraseButton.onclick = async () => {
 addFile.onclick = () => {
     var rowCount = table.rows.length;
     var row = table.insertRow(rowCount);
-    
+
     //Column 1 - Offset
     var cell1 = row.insertCell(0);
     var element1 = document.createElement("input");
@@ -146,7 +147,7 @@ addFile.onclick = () => {
     element1.id = "offset" + rowCount;
     element1.value = '0x1000';
     cell1.appendChild(element1);
-    
+
     // Column 2 - File selector
     var cell2 = row.insertCell(1);
     var element2 = document.createElement("input");
@@ -155,7 +156,7 @@ addFile.onclick = () => {
     element2.name = "selected_File" + rowCount;
     element2.addEventListener('change', handleFileSelect, false);
     cell2.appendChild(element2);
-    
+
     // Column 3  - Progress
     var cell3 = row.insertCell(2);
     cell3.classList.add("progress-cell");
@@ -172,8 +173,8 @@ addFile.onclick = () => {
         element4.name = btnName;
         element4.setAttribute('class', "btn");
         element4.setAttribute('value', 'Remove'); // or element1.value = "button";
-        element4.onclick = function() {
-                removeRow(row);
+        element4.onclick = function () {
+            removeRow(row);
         }
         cell4.appendChild(element4);
     }
@@ -192,7 +193,7 @@ function cleanUp() {
 }
 
 disconnectButton.onclick = async () => {
-    if(transport)
+    if (transport)
         await transport.disconnect();
 
     term.clear();
@@ -246,9 +247,9 @@ function validate_program_inputs() {
     var row;
     let offset = 0;
     let fileData = null;
- 
+
     // check for mandatory fields
-    for (let index = 1; index < rowCount; index ++) {
+    for (let index = 1; index < rowCount; index++) {
         row = table.rows[index];
 
         //offset fields checks
@@ -304,7 +305,7 @@ programButton.onclick = async () => {
         row.cells[2].style.display = "initial";
         row.cells[3].style.display = "none";
 
-        fileArray.push({data:fileObj.data, address:offset});
+        fileArray.push({ data: fileObj.data, address: offset });
     }
 
     try {
